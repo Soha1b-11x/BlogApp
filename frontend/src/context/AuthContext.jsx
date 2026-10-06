@@ -1,11 +1,9 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import { useConfig } from './ConfigContext';
-import axios from 'axios';
+import api from '../services/api';
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const { API_BASE_URL } = useConfig();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -16,9 +14,7 @@ export const AuthProvider = ({ children }) => {
 
   const checkAuth = async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/api/users/me`, {
-        withCredentials: true
-      });
+      const response = await api.get('/users/me');
       if (response.data.success) {
         setUser(response.data.data.user);
       }
@@ -35,9 +31,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     try {
-      await axios.post(`${API_BASE_URL}/api/auth/logout`, {}, {
-        withCredentials: true
-      });
+      await api.post('/auth/logout');
       setUser(null);
     } catch (error) {
       console.error('Logout error:', error);
@@ -46,9 +40,7 @@ export const AuthProvider = ({ children }) => {
 
   const refreshToken = async () => {
     try {
-      await axios.post(`${API_BASE_URL}/api/auth/refresh`, {}, {
-        withCredentials: true
-      });
+      await api.post('/auth/refresh');
       return true;
     } catch (error) {
       return false;
