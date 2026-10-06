@@ -204,8 +204,14 @@ export const deleteProfile = async (req, res) => {
     await User.findByIdAndDelete(req.user._id);
 
     // 8. Clear the authentication cookies so the browser is logged out
-    res.clearCookie('accessToken');
-    res.clearCookie('refreshToken');
+    const isProduction = process.env.NODE_ENV === 'production';
+    const cookieOptions = {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: isProduction ? 'none' : 'strict',
+    };
+    res.clearCookie('accessToken', cookieOptions);
+    res.clearCookie('refreshToken', cookieOptions);
 
     // 9. Send success response
     return res.status(200).json({

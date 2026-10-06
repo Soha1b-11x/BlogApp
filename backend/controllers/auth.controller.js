@@ -71,23 +71,25 @@ export const register = async (req, res) => {
       { expiresIn: '7d' }             // token expires in 7 days
     );
 
-    // 9. Decide if cookies should be "secure" (HTTPS only) based on environment
-    const useSecureCookies = process.env.NODE_ENV === 'production';
+    // 9. Decide cookie settings based on environment
+    //    Cross-site cookies (frontend and backend on different domains) require
+    //    sameSite: 'none' and secure: true, or the browser will silently block them
+    const isProduction = process.env.NODE_ENV === 'production';
 
     // 10. Store the access token in an HTTP-only cookie
     //     HTTP-only means JavaScript in the browser cannot read it (prevents XSS attacks)
     res.cookie('accessToken', accessToken, {
       httpOnly: true,
-      secure: useSecureCookies,
-      sameSite: 'strict',
+      secure: isProduction,
+      sameSite: isProduction ? 'none' : 'strict',
       maxAge: 15 * 60 * 1000          // 15 minutes in milliseconds
     });
 
     // 11. Store the refresh token in an HTTP-only cookie
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
-      secure: useSecureCookies,
-      sameSite: 'strict',
+      secure: isProduction,
+      sameSite: isProduction ? 'none' : 'strict',
       maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days in milliseconds
     });
 
@@ -169,19 +171,19 @@ export const login = async (req, res) => {
     );
 
     // 8. Store both tokens in HTTP-only cookies
-    const useSecureCookies = process.env.NODE_ENV === 'production';
+    const isProduction = process.env.NODE_ENV === 'production';
 
     res.cookie('accessToken', accessToken, {
       httpOnly: true,
-      secure: useSecureCookies,
-      sameSite: 'strict',
+      secure: isProduction,
+      sameSite: isProduction ? 'none' : 'strict',
       maxAge: 15 * 60 * 1000
     });
 
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
-      secure: useSecureCookies,
-      sameSite: 'strict',
+      secure: isProduction,
+      sameSite: isProduction ? 'none' : 'strict',
       maxAge: 7 * 24 * 60 * 60 * 1000
     });
 
@@ -211,8 +213,16 @@ export const login = async (req, res) => {
 // -----------------------------------------------------------------------------
 export const logout = (req, res) => {
   // 1. Remove both authentication cookies from the browser
-  res.clearCookie('accessToken');
-  res.clearCookie('refreshToken');
+  //    clearCookie must use matching sameSite/secure options or the browser won't clear them
+  const isProduction = process.env.NODE_ENV === 'production';
+  const cookieOptions = {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: isProduction ? 'none' : 'strict',
+  };
+
+  res.clearCookie('accessToken', cookieOptions);
+  res.clearCookie('refreshToken', cookieOptions);
 
   console.log('User logged out and authentication cookies were cleared');
 
@@ -259,10 +269,11 @@ export const refresh = async (req, res) => {
     );
 
     // 5. Replace only the access token cookie (keep the refresh token cookie as-is)
+    const isProduction = process.env.NODE_ENV === 'production';
     res.cookie('accessToken', newAccessToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      secure: isProduction,
+      sameSite: isProduction ? 'none' : 'strict',
       maxAge: 15 * 60 * 1000
     });
 
@@ -277,8 +288,14 @@ export const refresh = async (req, res) => {
   } catch (error) {
     // Handle expired refresh token specifically
     if (error.name === 'TokenExpiredError') {
-      res.clearCookie('accessToken');
-      res.clearCookie('refreshToken');
+      const isProduction = process.env.NODE_ENV === 'production';
+      const cookieOptions = {
+        httpOnly: true,
+        secure: isProduction,
+        sameSite: isProduction ? 'none' : 'strict',
+      };
+      res.clearCookie('accessToken', cookieOptions);
+      res.clearCookie('refreshToken', cookieOptions);
       console.warn('Refresh token expired; authentication cookies were cleared');
       return res.status(401).json({
         success: false,
