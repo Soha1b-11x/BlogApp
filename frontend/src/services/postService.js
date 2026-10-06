@@ -19,20 +19,12 @@ export const postService = {
   },
 
   createPost: async (formData) => {
-    const response = await api.post('/posts', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data'
-      }
-    });
+    const response = await api.post('/posts', formData);
     return response.data;
   },
 
   updatePost: async (id, formData) => {
-    const response = await api.put(`/posts/${id}`, formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data'
-      }
-    });
+    const response = await api.put(`/posts/${id}`, formData);
     return response.data;
   },
 

@@ -12,11 +12,7 @@ export const userService = {
   },
 
   updateProfile: async (formData) => {
-    const response = await api.put('/users/me', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data'
-      }
-    });
+    const response = await api.put('/users/me', formData);
     return response.data;
   },
 
