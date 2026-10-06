@@ -12,7 +12,7 @@ const registerSchema = Joi.object({
     .min(2)
     .max(50)
     .required()
-    .messages({
+    .messages({ //error messages
       'string.min': 'Name must be at least 2 characters',
       'string.max': 'Name cannot exceed 50 characters',
       'any.required': 'Name is required'

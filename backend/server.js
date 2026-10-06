@@ -40,10 +40,11 @@ const startServer = async () => {
 
   // 2. Set up CORS — allow the frontend to send cookies with cross-origin requests
   const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
-  app.use(cors({
-    origin: clientUrl,
-    credentials: true
-  }));
+  // app.use(cors({
+  //   origin: clientUrl,
+  //   credentials: true
+  // }));
+  app.use(cors())
 
   // 3. Parse incoming JSON bodies, URL-encoded form data, and cookies
   app.use(express.json());
